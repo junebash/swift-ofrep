@@ -1,4 +1,4 @@
-// swift-tools-version:6.0
+// swift-tools-version:6.1
 import PackageDescription
 
 let package = Package(
@@ -8,7 +8,9 @@ let package = Package(
         .library(name: "OFREP", targets: ["OFREP"])
     ],
     dependencies: [
-        .package(url: "https://github.com/swift-open-feature/swift-open-feature.git", branch: "main"),
+        // ServiceLifecycle became an opt-in trait of swift-open-feature; OFREPProvider runs as a Service.
+        .package(url: "https://github.com/swift-open-feature/swift-open-feature.git", branch: "main", traits: ["ServiceLifecycle"]),
+        .package(url: "https://github.com/swift-server/swift-service-lifecycle.git", from: "2.0.0"),
         .package(url: "https://github.com/apple/swift-openapi-generator.git", from: "1.7.0"),
         .package(url: "https://github.com/apple/swift-openapi-runtime.git", from: "1.0.0"),
         .package(url: "https://github.com/swift-server/swift-openapi-async-http-client.git", from: "1.0.0"),
@@ -18,6 +20,7 @@ let package = Package(
             name: "OFREP",
             dependencies: [
                 .product(name: "OpenFeature", package: "swift-open-feature"),
+                .product(name: "ServiceLifecycle", package: "swift-service-lifecycle"),
                 .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
                 .product(name: "OpenAPIAsyncHTTPClient", package: "swift-openapi-async-http-client"),
             ]
