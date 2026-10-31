@@ -43,8 +43,13 @@ extension OpenFeatureResolution<Int> {
 extension OpenFeatureResolution<Double> {
     package init(_ response: Operations.EvaluateFlag.Output, defaultValue: Double) {
         self.init(response, defaultValue: defaultValue) { response in
-            guard case .FloatFlag(let flag) = response else { return nil }
-            return flag.value
+            switch response {
+            case .FloatFlag(let flag): flag.value
+            // JSON has one number type, so a whole-number double such as 0.0 is usually sent as `0`,
+            // which decodes as an integer. It's still a valid Double.
+            case .IntegerFlag(let flag): Double(flag.value)
+            default: nil
+            }
         }
     }
 }

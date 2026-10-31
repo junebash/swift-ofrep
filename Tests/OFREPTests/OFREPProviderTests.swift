@@ -304,6 +304,33 @@ final class OFREPProviderTests {
             #expect(resolution.reason == .static)
             #expect(resolution.variant == "a")
         }
+
+        /// JSON has one number type, so `0` and `0.0` are the same value, and encoders commonly write a
+        /// whole-number double without the `.0`. Those decode as integers, and must still work as Doubles.
+        @Test("Accepts whole numbers", arguments: [0, 42, -7])
+        func wholeNumber(value: Int) async throws {
+            let transport = ClosureOFREPClientTransport {
+                (
+                    HTTPResponse(status: .ok),
+                    HTTPBody(
+                        """
+                        {
+                            "value": \(value),
+                            "reason": "STATIC",
+                            "variant": "a"
+                        }
+                        """
+                    )
+                )
+            }
+            let provider = OFREPProvider(transport: transport)
+
+            let resolution = await provider.resolution(of: "test-flag", defaultValue: 4.2, context: nil)
+
+            #expect(resolution.value == Double(value))
+            #expect(resolution.error == nil)
+            #expect(resolution.reason == .static)
+        }
     }
 
     @Test("Returns default value when transport fails", arguments: [true, false])
