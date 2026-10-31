@@ -169,6 +169,53 @@ final class OFREPProviderTests {
         }
     }
 
+    /// OFREP's "code default" result: no `value`, so the caller's default wins, and it isn't an error.
+    @Suite("Code Default")
+    struct CodeDefaultTests {
+        private static let transport = ClosureOFREPClientTransport {
+            (
+                HTTPResponse(status: .ok),
+                HTTPBody(
+                    """
+                    {
+                        "key": "test-flag",
+                        "reason": "DISABLED",
+                        "metadata": {"team": "growth"}
+                    }
+                    """
+                )
+            )
+        }
+
+        @Test("Bool returns the default value", arguments: [true, false])
+        func bool(defaultValue: Bool) async throws {
+            let resolution = await OFREPProvider(transport: Self.transport)
+                .resolution(of: "test-flag", defaultValue: defaultValue, context: nil)
+            #expect(resolution.value == defaultValue)
+            #expect(resolution.error == nil)
+            #expect(resolution.reason == .disabled)
+            #expect(resolution.flagMetadata == ["team": .string("growth")])
+        }
+
+        @Test("String, Int and Double return the default value")
+        func otherTypes() async throws {
+            let provider = OFREPProvider(transport: Self.transport)
+
+            let string = await provider.resolution(of: "test-flag", defaultValue: "default", context: nil)
+            #expect(string.value == "default")
+            #expect(string.error == nil)
+
+            let int = await provider.resolution(of: "test-flag", defaultValue: 42, context: nil)
+            #expect(int.value == 42)
+            #expect(int.error == nil)
+
+            let double = await provider.resolution(of: "test-flag", defaultValue: 4.2, context: nil)
+            #expect(double.value == 4.2)
+            #expect(double.error == nil)
+            #expect(double.reason == .disabled)
+        }
+    }
+
     @Suite("String Evaluation")
     struct StringEvaluationTests {
         @Test("Returns successful server evaluation", arguments: ["Hello", ""])

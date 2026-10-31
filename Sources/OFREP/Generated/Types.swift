@@ -29,15 +29,6 @@ package protocol APIProtocol: Sendable {
     /// - Remark: HTTP `POST /ofrep/v1/evaluate/flags`.
     /// - Remark: Generated from `#/paths//ofrep/v1/evaluate/flags/post(evaluateFlagsBulk)`.
     func evaluateFlagsBulk(_ input: Operations.EvaluateFlagsBulk.Input) async throws -> Operations.EvaluateFlagsBulk.Output
-    /// OFREP provider configuration
-    ///
-    /// OFREP configuration is used to supply information about the remote flag management system and to set up the OpenFeature SDK providers.
-    /// The providers will contact this endpoint only if the client has opted in.
-    ///
-    ///
-    /// - Remark: HTTP `GET /ofrep/v1/configuration`.
-    /// - Remark: Generated from `#/paths//ofrep/v1/configuration/get(getConfiguration)`.
-    func getConfiguration(_ input: Operations.GetConfiguration.Input) async throws -> Operations.GetConfiguration.Output
 }
 
 /// Convenience overloads for operation inputs.
@@ -77,17 +68,6 @@ extension APIProtocol {
             headers: headers,
             body: body
         ))
-    }
-    /// OFREP provider configuration
-    ///
-    /// OFREP configuration is used to supply information about the remote flag management system and to set up the OpenFeature SDK providers.
-    /// The providers will contact this endpoint only if the client has opted in.
-    ///
-    ///
-    /// - Remark: HTTP `GET /ofrep/v1/configuration`.
-    /// - Remark: Generated from `#/paths//ofrep/v1/configuration/get(getConfiguration)`.
-    package func getConfiguration(headers: Operations.GetConfiguration.Input.Headers = .init()) async throws -> Operations.GetConfiguration.Output {
-        try await getConfiguration(Operations.GetConfiguration.Input(headers: headers))
     }
 }
 
@@ -245,44 +225,18 @@ package enum Components {
         package struct ServerEvaluationSuccess: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/serverEvaluationSuccess/value1`.
             package var value1: Components.Schemas.EvaluationSuccess
-            /// - Remark: Generated from `#/components/schemas/serverEvaluationSuccess/value2`.
-            package struct Value2Payload: Codable, Hashable, Sendable {
-                /// Let the provider know that this flag evaluation can be cached
-                ///
-                /// - Remark: Generated from `#/components/schemas/serverEvaluationSuccess/value2/cacheable`.
-                package var cacheable: Swift.Bool?
-                /// Creates a new `Value2Payload`.
-                ///
-                /// - Parameters:
-                ///   - cacheable: Let the provider know that this flag evaluation can be cached
-                package init(cacheable: Swift.Bool? = nil) {
-                    self.cacheable = cacheable
-                }
-                package enum CodingKeys: String, CodingKey {
-                    case cacheable
-                }
-            }
-            /// - Remark: Generated from `#/components/schemas/serverEvaluationSuccess/value2`.
-            package var value2: Components.Schemas.ServerEvaluationSuccess.Value2Payload
             /// Creates a new `ServerEvaluationSuccess`.
             ///
             /// - Parameters:
             ///   - value1:
-            ///   - value2:
-            package init(
-                value1: Components.Schemas.EvaluationSuccess,
-                value2: Components.Schemas.ServerEvaluationSuccess.Value2Payload
-            ) {
+            package init(value1: Components.Schemas.EvaluationSuccess) {
                 self.value1 = value1
-                self.value2 = value2
             }
             package init(from decoder: any Decoder) throws {
                 self.value1 = try .init(from: decoder)
-                self.value2 = try .init(from: decoder)
             }
             package func encode(to encoder: any Encoder) throws {
                 try self.value1.encode(to: encoder)
-                try self.value2.encode(to: encoder)
             }
         }
         /// Flag evaluation success response.
@@ -376,6 +330,8 @@ package enum Components {
                 case FloatFlag(Components.Schemas.FloatFlag)
                 /// - Remark: Generated from `#/components/schemas/evaluationSuccess/value2/case5`.
                 case ObjectFlag(Components.Schemas.ObjectFlag)
+                /// - Remark: Generated from `#/components/schemas/evaluationSuccess/value2/case6`.
+                case CodeDefaultFlag(Components.Schemas.CodeDefaultFlag)
                 package init(from decoder: any Decoder) throws {
                     var errors: [any Error] = []
                     do {
@@ -408,6 +364,12 @@ package enum Components {
                     } catch {
                         errors.append(error)
                     }
+                    do {
+                        self = .CodeDefaultFlag(try .init(from: decoder))
+                        return
+                    } catch {
+                        errors.append(error)
+                    }
                     throw Swift.DecodingError.failedToDecodeOneOfSchema(
                         type: Self.self,
                         codingPath: decoder.codingPath,
@@ -425,6 +387,8 @@ package enum Components {
                     case let .FloatFlag(value):
                         try value.encode(to: encoder)
                     case let .ObjectFlag(value):
+                        try value.encode(to: encoder)
+                    case let .CodeDefaultFlag(value):
                         try value.encode(to: encoder)
                     }
                 }
@@ -769,182 +733,14 @@ package enum Components {
                 case value
             }
         }
+        /// A flag evaluation that defers to the code default value
+        ///
+        /// - Remark: Generated from `#/components/schemas/codeDefaultFlag`.
+        package typealias CodeDefaultFlag = OpenAPIRuntime.OpenAPIObjectContainer
         /// An error description for logging or other needs
         ///
         /// - Remark: Generated from `#/components/schemas/errorDetails`.
         package typealias ErrorDetails = Swift.String
-        /// OFREP metadata response
-        ///
-        /// - Remark: Generated from `#/components/schemas/configurationResponse`.
-        package struct ConfigurationResponse: Codable, Hashable, Sendable {
-            /// name of the flag management system
-            ///
-            /// - Remark: Generated from `#/components/schemas/configurationResponse/name`.
-            package var name: Swift.String?
-            /// Capabilities of the flag management system and how to configure them in the provider.
-            ///
-            /// - Remark: Generated from `#/components/schemas/configurationResponse/capabilities`.
-            package struct CapabilitiesPayload: Codable, Hashable, Sendable {
-                /// - Remark: Generated from `#/components/schemas/configurationResponse/capabilities/cacheInvalidation`.
-                package var cacheInvalidation: Components.Schemas.FeatureCacheInvalidation?
-                /// - Remark: Generated from `#/components/schemas/configurationResponse/capabilities/flagEvaluation`.
-                package var flagEvaluation: Components.Schemas.FlagEvaluation?
-                /// - Remark: Generated from `#/components/schemas/configurationResponse/capabilities/caching`.
-                package var caching: Components.Schemas.FeatureCaching?
-                /// Creates a new `CapabilitiesPayload`.
-                ///
-                /// - Parameters:
-                ///   - cacheInvalidation:
-                ///   - flagEvaluation:
-                ///   - caching:
-                package init(
-                    cacheInvalidation: Components.Schemas.FeatureCacheInvalidation? = nil,
-                    flagEvaluation: Components.Schemas.FlagEvaluation? = nil,
-                    caching: Components.Schemas.FeatureCaching? = nil
-                ) {
-                    self.cacheInvalidation = cacheInvalidation
-                    self.flagEvaluation = flagEvaluation
-                    self.caching = caching
-                }
-                package enum CodingKeys: String, CodingKey {
-                    case cacheInvalidation
-                    case flagEvaluation
-                    case caching
-                }
-            }
-            /// Capabilities of the flag management system and how to configure them in the provider.
-            ///
-            /// - Remark: Generated from `#/components/schemas/configurationResponse/capabilities`.
-            package var capabilities: Components.Schemas.ConfigurationResponse.CapabilitiesPayload?
-            /// Creates a new `ConfigurationResponse`.
-            ///
-            /// - Parameters:
-            ///   - name: name of the flag management system
-            ///   - capabilities: Capabilities of the flag management system and how to configure them in the provider.
-            package init(
-                name: Swift.String? = nil,
-                capabilities: Components.Schemas.ConfigurationResponse.CapabilitiesPayload? = nil
-            ) {
-                self.name = name
-                self.capabilities = capabilities
-            }
-            package enum CodingKeys: String, CodingKey {
-                case name
-                case capabilities
-            }
-        }
-        /// Configurations specific for flag evaluations in OFREP provider implementation
-        ///
-        /// - Remark: Generated from `#/components/schemas/flagEvaluation`.
-        package struct FlagEvaluation: Codable, Hashable, Sendable {
-            /// - Remark: Generated from `#/components/schemas/flagEvaluation/SupportedTypesPayload`.
-            @frozen package enum SupportedTypesPayloadPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                case int = "int"
-                case float = "float"
-                case string = "string"
-                case boolean = "boolean"
-                case object = "object"
-            }
-            /// Evaluating a flag of unlisted type through the OFREP provider will result in an error and yield the default value.
-            /// However, when supportedTypes is undefined/empty, provider assumes that all flag evaluation types are supported by the flag management system
-            ///
-            ///
-            /// - Remark: Generated from `#/components/schemas/flagEvaluation/supportedTypes`.
-            package typealias SupportedTypesPayload = [Components.Schemas.FlagEvaluation.SupportedTypesPayloadPayload]
-            /// Evaluating a flag of unlisted type through the OFREP provider will result in an error and yield the default value.
-            /// However, when supportedTypes is undefined/empty, provider assumes that all flag evaluation types are supported by the flag management system
-            ///
-            ///
-            /// - Remark: Generated from `#/components/schemas/flagEvaluation/supportedTypes`.
-            package var supportedTypes: Components.Schemas.FlagEvaluation.SupportedTypesPayload?
-            /// Creates a new `FlagEvaluation`.
-            ///
-            /// - Parameters:
-            ///   - supportedTypes: Evaluating a flag of unlisted type through the OFREP provider will result in an error and yield the default value.
-            package init(supportedTypes: Components.Schemas.FlagEvaluation.SupportedTypesPayload? = nil) {
-                self.supportedTypes = supportedTypes
-            }
-            package enum CodingKeys: String, CodingKey {
-                case supportedTypes
-            }
-        }
-        /// Configuration for the cache cacheInvalidation
-        ///
-        /// - Remark: Generated from `#/components/schemas/featureCacheInvalidation`.
-        package struct FeatureCacheInvalidation: Codable, Hashable, Sendable {
-            /// - Remark: Generated from `#/components/schemas/featureCacheInvalidation/polling`.
-            package var polling: Components.Schemas.FeatureCacheInvalidationPolling?
-            /// Creates a new `FeatureCacheInvalidation`.
-            ///
-            /// - Parameters:
-            ///   - polling:
-            package init(polling: Components.Schemas.FeatureCacheInvalidationPolling? = nil) {
-                self.polling = polling
-            }
-            package enum CodingKeys: String, CodingKey {
-                case polling
-            }
-        }
-        /// Configuration of the polling for the featureCacheInvalidation
-        ///
-        /// - Remark: Generated from `#/components/schemas/featureCacheInvalidationPolling`.
-        package struct FeatureCacheInvalidationPolling: Codable, Hashable, Sendable {
-            /// set to true if the remote flag management system is supporting polling
-            ///
-            /// - Remark: Generated from `#/components/schemas/featureCacheInvalidationPolling/enabled`.
-            package var enabled: Swift.Bool?
-            /// Minimum polling interval (in millisecond) supported by the flag management system.  
-            /// The provider should ensure not to set any polling value under this minimum.
-            ///
-            ///
-            /// - Remark: Generated from `#/components/schemas/featureCacheInvalidationPolling/minPollingIntervalMs`.
-            package var minPollingIntervalMs: Swift.Double?
-            /// Creates a new `FeatureCacheInvalidationPolling`.
-            ///
-            /// - Parameters:
-            ///   - enabled: set to true if the remote flag management system is supporting polling
-            ///   - minPollingIntervalMs: Minimum polling interval (in millisecond) supported by the flag management system.  
-            package init(
-                enabled: Swift.Bool? = nil,
-                minPollingIntervalMs: Swift.Double? = nil
-            ) {
-                self.enabled = enabled
-                self.minPollingIntervalMs = minPollingIntervalMs
-            }
-            package enum CodingKeys: String, CodingKey {
-                case enabled
-                case minPollingIntervalMs
-            }
-        }
-        /// Configuration of the caching mechanism in the provider (used by server providers)
-        ///
-        /// - Remark: Generated from `#/components/schemas/featureCaching`.
-        package struct FeatureCaching: Codable, Hashable, Sendable {
-            /// set to true if you want the provider to cache the evaluation results
-            ///
-            /// - Remark: Generated from `#/components/schemas/featureCaching/enabled`.
-            package var enabled: Swift.Bool?
-            /// number (in millisecond) to wait before invalidating the cache. If we have cacheInvalidation enabled, the cache can also be evicted if a configuration change happen.
-            ///
-            /// - Remark: Generated from `#/components/schemas/featureCaching/ttl`.
-            package var ttl: Swift.Double?
-            /// Creates a new `FeatureCaching`.
-            ///
-            /// - Parameters:
-            ///   - enabled: set to true if you want the provider to cache the evaluation results
-            ///   - ttl: number (in millisecond) to wait before invalidating the cache. If we have cacheInvalidation enabled, the cache can also be evicted if a configuration change happen.
-            package init(
-                enabled: Swift.Bool? = nil,
-                ttl: Swift.Double? = nil
-            ) {
-                self.enabled = enabled
-                self.ttl = ttl
-            }
-            package enum CodingKeys: String, CodingKey {
-                case enabled
-                case ttl
-            }
-        }
         /// - Remark: Generated from `#/components/schemas/metadata`.
         package struct Metadata: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/metadata/additionalProperties`.
@@ -1806,306 +1602,6 @@ package enum Operations {
             /// - Throws: An error if `self` is not `.internalServerError`.
             /// - SeeAlso: `.internalServerError`.
             package var internalServerError: Operations.EvaluateFlagsBulk.Output.InternalServerError {
-                get throws {
-                    switch self {
-                    case let .internalServerError(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "internalServerError",
-                            response: self
-                        )
-                    }
-                }
-            }
-            /// Undocumented response.
-            ///
-            /// A response with a code that is not documented in the OpenAPI document.
-            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
-        }
-        @frozen package enum AcceptableContentType: AcceptableProtocol {
-            case json
-            case other(Swift.String)
-            package init?(rawValue: Swift.String) {
-                switch rawValue.lowercased() {
-                case "application/json":
-                    self = .json
-                default:
-                    self = .other(rawValue)
-                }
-            }
-            package var rawValue: Swift.String {
-                switch self {
-                case let .other(string):
-                    return string
-                case .json:
-                    return "application/json"
-                }
-            }
-            package static var allCases: [Self] {
-                [
-                    .json
-                ]
-            }
-        }
-    }
-    /// OFREP provider configuration
-    ///
-    /// OFREP configuration is used to supply information about the remote flag management system and to set up the OpenFeature SDK providers.
-    /// The providers will contact this endpoint only if the client has opted in.
-    ///
-    ///
-    /// - Remark: HTTP `GET /ofrep/v1/configuration`.
-    /// - Remark: Generated from `#/paths//ofrep/v1/configuration/get(getConfiguration)`.
-    package enum GetConfiguration {
-        package static let id: Swift.String = "getConfiguration"
-        package struct Input: Sendable, Hashable {
-            /// - Remark: Generated from `#/paths/ofrep/v1/configuration/GET/header`.
-            package struct Headers: Sendable, Hashable {
-                /// The request will be processed only if ETag doesn't match any of the values listed.
-                ///
-                /// - Remark: Generated from `#/paths/ofrep/v1/configuration/GET/header/If-None-Match`.
-                package var ifNoneMatch: Swift.String?
-                package var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetConfiguration.AcceptableContentType>]
-                /// Creates a new `Headers`.
-                ///
-                /// - Parameters:
-                ///   - ifNoneMatch: The request will be processed only if ETag doesn't match any of the values listed.
-                ///   - accept:
-                package init(
-                    ifNoneMatch: Swift.String? = nil,
-                    accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetConfiguration.AcceptableContentType>] = .defaultValues()
-                ) {
-                    self.ifNoneMatch = ifNoneMatch
-                    self.accept = accept
-                }
-            }
-            package var headers: Operations.GetConfiguration.Input.Headers
-            /// Creates a new `Input`.
-            ///
-            /// - Parameters:
-            ///   - headers:
-            package init(headers: Operations.GetConfiguration.Input.Headers = .init()) {
-                self.headers = headers
-            }
-        }
-        @frozen package enum Output: Sendable, Hashable {
-            package struct Ok: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/ofrep/v1/configuration/GET/responses/200/headers`.
-                package struct Headers: Sendable, Hashable {
-                    /// Entity tag used for cache validation
-                    ///
-                    /// - Remark: Generated from `#/paths/ofrep/v1/configuration/GET/responses/200/headers/ETag`.
-                    package var eTag: Swift.String?
-                    /// Creates a new `Headers`.
-                    ///
-                    /// - Parameters:
-                    ///   - eTag: Entity tag used for cache validation
-                    package init(eTag: Swift.String? = nil) {
-                        self.eTag = eTag
-                    }
-                }
-                /// Received HTTP response headers
-                package var headers: Operations.GetConfiguration.Output.Ok.Headers
-                /// - Remark: Generated from `#/paths/ofrep/v1/configuration/GET/responses/200/content`.
-                @frozen package enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/ofrep/v1/configuration/GET/responses/200/content/application\/json`.
-                    case json(Components.Schemas.ConfigurationResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    package var json: Components.Schemas.ConfigurationResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                package var body: Operations.GetConfiguration.Output.Ok.Body
-                /// Creates a new `Ok`.
-                ///
-                /// - Parameters:
-                ///   - headers: Received HTTP response headers
-                ///   - body: Received HTTP response body
-                package init(
-                    headers: Operations.GetConfiguration.Output.Ok.Headers = .init(),
-                    body: Operations.GetConfiguration.Output.Ok.Body
-                ) {
-                    self.headers = headers
-                    self.body = body
-                }
-            }
-            /// OFREP metadata response
-            ///
-            /// - Remark: Generated from `#/paths//ofrep/v1/configuration/get(getConfiguration)/responses/200`.
-            ///
-            /// HTTP response code: `200 ok`.
-            case ok(Operations.GetConfiguration.Output.Ok)
-            /// The associated value of the enum case if `self` is `.ok`.
-            ///
-            /// - Throws: An error if `self` is not `.ok`.
-            /// - SeeAlso: `.ok`.
-            package var ok: Operations.GetConfiguration.Output.Ok {
-                get throws {
-                    switch self {
-                    case let .ok(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "ok",
-                            response: self
-                        )
-                    }
-                }
-            }
-            package struct NotModified: Sendable, Hashable {
-                /// Creates a new `NotModified`.
-                package init() {}
-            }
-            /// Flag Management System Metadata is not modified
-            ///
-            /// - Remark: Generated from `#/paths//ofrep/v1/configuration/get(getConfiguration)/responses/304`.
-            ///
-            /// HTTP response code: `304 notModified`.
-            case notModified(Operations.GetConfiguration.Output.NotModified)
-            /// Flag Management System Metadata is not modified
-            ///
-            /// - Remark: Generated from `#/paths//ofrep/v1/configuration/get(getConfiguration)/responses/304`.
-            ///
-            /// HTTP response code: `304 notModified`.
-            package static var notModified: Self {
-                .notModified(.init())
-            }
-            /// The associated value of the enum case if `self` is `.notModified`.
-            ///
-            /// - Throws: An error if `self` is not `.notModified`.
-            /// - SeeAlso: `.notModified`.
-            package var notModified: Operations.GetConfiguration.Output.NotModified {
-                get throws {
-                    switch self {
-                    case let .notModified(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "notModified",
-                            response: self
-                        )
-                    }
-                }
-            }
-            package struct Unauthorized: Sendable, Hashable {
-                /// Creates a new `Unauthorized`.
-                package init() {}
-            }
-            /// Unauthorized - You need credentials to access the API
-            ///
-            /// - Remark: Generated from `#/paths//ofrep/v1/configuration/get(getConfiguration)/responses/401`.
-            ///
-            /// HTTP response code: `401 unauthorized`.
-            case unauthorized(Operations.GetConfiguration.Output.Unauthorized)
-            /// Unauthorized - You need credentials to access the API
-            ///
-            /// - Remark: Generated from `#/paths//ofrep/v1/configuration/get(getConfiguration)/responses/401`.
-            ///
-            /// HTTP response code: `401 unauthorized`.
-            package static var unauthorized: Self {
-                .unauthorized(.init())
-            }
-            /// The associated value of the enum case if `self` is `.unauthorized`.
-            ///
-            /// - Throws: An error if `self` is not `.unauthorized`.
-            /// - SeeAlso: `.unauthorized`.
-            package var unauthorized: Operations.GetConfiguration.Output.Unauthorized {
-                get throws {
-                    switch self {
-                    case let .unauthorized(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "unauthorized",
-                            response: self
-                        )
-                    }
-                }
-            }
-            package struct Forbidden: Sendable, Hashable {
-                /// Creates a new `Forbidden`.
-                package init() {}
-            }
-            /// Forbidden - You are not authorized to access the API
-            ///
-            /// - Remark: Generated from `#/paths//ofrep/v1/configuration/get(getConfiguration)/responses/403`.
-            ///
-            /// HTTP response code: `403 forbidden`.
-            case forbidden(Operations.GetConfiguration.Output.Forbidden)
-            /// Forbidden - You are not authorized to access the API
-            ///
-            /// - Remark: Generated from `#/paths//ofrep/v1/configuration/get(getConfiguration)/responses/403`.
-            ///
-            /// HTTP response code: `403 forbidden`.
-            package static var forbidden: Self {
-                .forbidden(.init())
-            }
-            /// The associated value of the enum case if `self` is `.forbidden`.
-            ///
-            /// - Throws: An error if `self` is not `.forbidden`.
-            /// - SeeAlso: `.forbidden`.
-            package var forbidden: Operations.GetConfiguration.Output.Forbidden {
-                get throws {
-                    switch self {
-                    case let .forbidden(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "forbidden",
-                            response: self
-                        )
-                    }
-                }
-            }
-            package struct InternalServerError: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/ofrep/v1/configuration/GET/responses/500/content`.
-                @frozen package enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/ofrep/v1/configuration/GET/responses/500/content/application\/json`.
-                    case json(Components.Schemas.GeneralErrorResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    package var json: Components.Schemas.GeneralErrorResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                package var body: Operations.GetConfiguration.Output.InternalServerError.Body
-                /// Creates a new `InternalServerError`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                package init(body: Operations.GetConfiguration.Output.InternalServerError.Body) {
-                    self.body = body
-                }
-            }
-            /// Internal server error
-            ///
-            /// - Remark: Generated from `#/paths//ofrep/v1/configuration/get(getConfiguration)/responses/500`.
-            ///
-            /// HTTP response code: `500 internalServerError`.
-            case internalServerError(Operations.GetConfiguration.Output.InternalServerError)
-            /// The associated value of the enum case if `self` is `.internalServerError`.
-            ///
-            /// - Throws: An error if `self` is not `.internalServerError`.
-            /// - SeeAlso: `.internalServerError`.
-            package var internalServerError: Operations.GetConfiguration.Output.InternalServerError {
                 get throws {
                     switch self {
                     case let .internalServerError(response):

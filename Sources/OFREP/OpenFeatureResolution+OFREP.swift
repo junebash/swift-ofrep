@@ -62,7 +62,17 @@ extension OpenFeatureResolution {
                 let variant = jsonPayload.value1.value1.variant
                 let flagMetadata = jsonPayload.value1.value1.metadata.toFlagMetadata()
 
-                if let value = transformSuccessfulResponse(jsonPayload.value1.value2) {
+                if case .CodeDefaultFlag = jsonPayload.value1.value2 {
+                    // OFREP's "code default": the server sent no value, so the caller's default is the answer.
+                    // Not an error; the reason (e.g. DISABLED) says why.
+                    self = OpenFeatureResolution(
+                        value: defaultValue,
+                        error: nil,
+                        reason: jsonPayload.value1.value1.reason.map(OpenFeatureResolutionReason.init),
+                        variant: variant,
+                        flagMetadata: flagMetadata
+                    )
+                } else if let value = transformSuccessfulResponse(jsonPayload.value1.value2) {
                     self = OpenFeatureResolution(
                         value: value,
                         error: nil,
@@ -181,6 +191,7 @@ extension Components.Schemas.EvaluationSuccess.Value2Payload {
         case .IntegerFlag: "Int"
         case .FloatFlag: "Double"
         case .ObjectFlag: "Object"
+        case .CodeDefaultFlag: "code default"
         }
     }
 

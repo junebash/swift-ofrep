@@ -39,8 +39,7 @@ struct OpenFeatureResolutionDecodingTests {
                                     )
                                 ),
                                 value2: .BooleanFlag(.init(value: value))
-                            ),
-                            value2: .init(cacheable: nil)
+                            )
                         )
                     )
                 )
@@ -72,8 +71,7 @@ struct OpenFeatureResolutionDecodingTests {
                         )
                     ),
                     value2: .StringFlag(.init(value: "💩"))
-                ),
-                value2: .init(cacheable: nil)
+                )
             )
 
             let expectedResolution = OpenFeatureResolution(
@@ -116,8 +114,7 @@ struct OpenFeatureResolutionDecodingTests {
                                     )
                                 ),
                                 value2: .StringFlag(.init(value: value))
-                            ),
-                            value2: .init(cacheable: nil)
+                            )
                         )
                     )
                 )
@@ -149,8 +146,7 @@ struct OpenFeatureResolutionDecodingTests {
                         )
                     ),
                     value2: .BooleanFlag(.init(value: true))
-                ),
-                value2: .init(cacheable: nil)
+                )
             )
 
             let expectedResolution = OpenFeatureResolution(
@@ -193,8 +189,7 @@ struct OpenFeatureResolutionDecodingTests {
                                     )
                                 ),
                                 value2: .IntegerFlag(.init(value: value))
-                            ),
-                            value2: .init(cacheable: nil)
+                            )
                         )
                     )
                 )
@@ -226,8 +221,7 @@ struct OpenFeatureResolutionDecodingTests {
                         )
                     ),
                     value2: .StringFlag(.init(value: "💩"))
-                ),
-                value2: .init(cacheable: nil)
+                )
             )
 
             let expectedResolution = OpenFeatureResolution(
@@ -270,8 +264,7 @@ struct OpenFeatureResolutionDecodingTests {
                                     )
                                 ),
                                 value2: .FloatFlag(.init(value: value))
-                            ),
-                            value2: .init(cacheable: nil)
+                            )
                         )
                     )
                 )
@@ -303,8 +296,7 @@ struct OpenFeatureResolutionDecodingTests {
                         )
                     ),
                     value2: .StringFlag(.init(value: "💩"))
-                ),
-                value2: .init(cacheable: nil)
+                )
             )
 
             let expectedResolution = OpenFeatureResolution(
