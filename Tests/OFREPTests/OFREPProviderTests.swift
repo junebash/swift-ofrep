@@ -109,6 +109,37 @@ final class OFREPProviderTests {
         try #expect(JSONDecoder().decode(Components.Schemas.EvaluationRequest.self, from: bodyBytes) == payload)
     }
 
+    @Test("Sends the given header fields with every request")
+    func sendsHeaderFields() async throws {
+        let transport = RecordingOFREPClientTransport()
+        let provider = OFREPProvider(
+            serverURL: .stub,
+            headerFields: [.authorization: "Bearer secret", HTTPField.Name("X-Extra")!: "1"],
+            transport: transport
+        )
+
+        _ = await provider.resolution(of: "flag", defaultValue: true, context: nil)
+        _ = await provider.resolution(of: "flag", defaultValue: "default", context: nil)
+
+        let requests = await transport.requests
+        #expect(requests.count == 2)
+        for request in requests {
+            #expect(request.headerFields[.authorization] == "Bearer secret")
+            #expect(request.headerFields[HTTPField.Name("X-Extra")!] == "1")
+        }
+    }
+
+    @Test("Sends no extra header fields by default")
+    func sendsNoExtraHeaderFieldsByDefault() async throws {
+        let transport = RecordingOFREPClientTransport()
+        let provider = OFREPProvider(serverURL: .stub, transport: transport)
+
+        _ = await provider.resolution(of: "flag", defaultValue: true, context: nil)
+
+        let request = try await #require(transport.requests.first)
+        #expect(request.headerFields[.authorization] == nil)
+    }
+
     @Suite("Bool Evaluation")
     struct BoolEvaluationTests {
         @Test("Returns successful server evaluation", arguments: [true, false])
@@ -279,7 +310,7 @@ private actor RecordingOFREPClientTransport: OFREPClientTransport {
         HTTPResponse,
         HTTPBody?
     ) {
-        requests.append(Request(body: body, baseURL: baseURL))
+        requests.append(Request(headerFields: request.headerFields, body: body, baseURL: baseURL))
         return (HTTPResponse(status: 501), nil)
     }
 
@@ -288,6 +319,7 @@ private actor RecordingOFREPClientTransport: OFREPClientTransport {
     }
 
     struct Request {
+        let headerFields: HTTPFields
         let body: HTTPBody?
         let baseURL: URL
     }

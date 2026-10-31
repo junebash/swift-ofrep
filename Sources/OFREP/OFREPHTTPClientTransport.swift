@@ -44,9 +44,21 @@ struct OFREPHTTPClientTransport: OFREPClientTransport {
 }
 
 extension OFREPProvider<OFREPHTTPClientTransport> {
-    public init(serverURL: URL, httpClient: HTTPClient = .shared, timeout: Duration = .seconds(60)) {
+    /// - Parameters:
+    ///   - serverURL: The OFREP server's base URL.
+    ///   - headerFields: Sent with every request. Use it for credentials, e.g.
+    ///     `[.authorization: "Bearer <token>"]` or `[HTTPField.Name("X-API-Key")!: "<key>"]`.
+    ///   - httpClient: The HTTP client to send requests with.
+    ///   - timeout: How long to wait for each request.
+    public init(
+        serverURL: URL,
+        headerFields: HTTPFields = [:],
+        httpClient: HTTPClient = .shared,
+        timeout: Duration = .seconds(60)
+    ) {
         self.init(
             serverURL: serverURL,
+            headerFields: headerFields,
             transport: AsyncHTTPClientTransport(
                 configuration: AsyncHTTPClientTransport.Configuration(
                     client: httpClient,
@@ -56,8 +68,13 @@ extension OFREPProvider<OFREPHTTPClientTransport> {
         )
     }
 
+    /// - Parameters:
+    ///   - serverURL: The OFREP server's base URL.
+    ///   - headerFields: Sent with every request. Use it for credentials, e.g.
+    ///     `[.authorization: "Bearer <token>"]` or `[HTTPField.Name("X-API-Key")!: "<key>"]`.
     public init(
         serverURL: URL,
+        headerFields: HTTPFields = [:],
         configuration: HTTPClient.Configuration,
         eventLoopGroup: EventLoopGroup = HTTPClient.defaultEventLoopGroup,
         backgroundActivityLogger: Logger? = nil,
@@ -76,13 +93,15 @@ extension OFREPProvider<OFREPHTTPClientTransport> {
         )
         self.init(
             serverURL: serverURL,
+            headerFields: headerFields,
             transport: OFREPHTTPClientTransport(transport: httpClientTransport, shouldShutDownHTTPClient: true)
         )
     }
 
-    package init(serverURL: URL, transport: AsyncHTTPClientTransport) {
+    package init(serverURL: URL, headerFields: HTTPFields = [:], transport: AsyncHTTPClientTransport) {
         self.init(
             serverURL: serverURL,
+            headerFields: headerFields,
             transport: OFREPHTTPClientTransport(transport: transport, shouldShutDownHTTPClient: false)
         )
     }

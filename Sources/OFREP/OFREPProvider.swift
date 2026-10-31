@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import Foundation
+import HTTPTypes
 import Logging
 import OpenAPIRuntime
 import OpenFeature
@@ -24,9 +25,15 @@ public struct OFREPProvider<Transport: OFREPClientTransport>: OpenFeatureProvide
     private let client: Client
     private let logger = Logger(label: "OFREPProvider")
 
-    package init(serverURL: URL, transport: Transport) {
+    /// - Parameter headerFields: Sent with every request, e.g. `[.authorization: "Bearer <token>"]`
+    ///   for a server that needs credentials.
+    package init(serverURL: URL, headerFields: HTTPFields = [:], transport: Transport) {
         self.transport = transport
-        self.client = Client(serverURL: serverURL, transport: transport)
+        self.client = Client(
+            serverURL: serverURL,
+            transport: transport,
+            middlewares: headerFields.isEmpty ? [] : [HeaderFieldsMiddleware(headerFields: headerFields)]
+        )
     }
 
     public func resolution(
